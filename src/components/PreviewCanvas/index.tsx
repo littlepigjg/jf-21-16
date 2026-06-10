@@ -3,6 +3,36 @@ import { ZoomIn, ZoomOut, Maximize2 } from 'lucide-react';
 import { useEditorStore } from '@/stores/editorStore';
 import { processFrame } from '@/utils/frameProcessor';
 
+function imageDataToCanvas(imageData: ImageData): HTMLCanvasElement {
+  const canvas = document.createElement('canvas');
+  canvas.width = imageData.width;
+  canvas.height = imageData.height;
+  const ctx = canvas.getContext('2d');
+  if (ctx) {
+    ctx.putImageData(imageData, 0, 0);
+  }
+  return canvas;
+}
+
+function drawTintedFrame(
+  ctx: CanvasRenderingContext2D,
+  imageData: ImageData,
+  alpha: number,
+  tintColor?: { r: number; g: number; b: number }
+) {
+  const tempCanvas = imageDataToCanvas(imageData);
+  ctx.save();
+  ctx.globalAlpha = alpha;
+  ctx.drawImage(tempCanvas, 0, 0);
+
+  if (tintColor) {
+    ctx.globalCompositeOperation = 'source-atop';
+    ctx.fillStyle = `rgba(${tintColor.r}, ${tintColor.g}, ${tintColor.b}, ${alpha * 0.3})`;
+    ctx.fillRect(0, 0, imageData.width, imageData.height);
+  }
+  ctx.restore();
+}
+
 export default function PreviewCanvas() {
   const {
     frames,
@@ -17,6 +47,10 @@ export default function PreviewCanvas() {
     canvasHeight,
     selectedFrameIndex,
     setSelectedFrameIndex,
+    onionSkinEnabled,
+    onionSkinPrevFrames,
+    onionSkinNextFrames,
+    onionSkinOpacity,
   } = useEditorStore();
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -76,14 +110,47 @@ export default function PreviewCanvas() {
 
     if (frames.length === 0) return;
 
-    const frame = frames[currentFrameIndex];
-    if (!frame) return;
+    const currentFrame = frames[currentFrameIndex];
+    if (!currentFrame) return;
 
-    const processedData = processFrame(frame, captions, currentFrameIndex, crop);
-    canvas.width = processedData.width;
-    canvas.height = processedData.height;
-    ctx.putImageData(processedData, 0, 0);
-  }, [currentFrameIndex, frames, captions, crop]);
+    const processedCurrent = processFrame(currentFrame, captions, currentFrameIndex, crop);
+    canvas.width = processedCurrent.width;
+    canvas.height = processedCurrent.height;
+
+    if (onionSkinEnabled) {
+      for (let i = onionSkinPrevFrames; i >= 1; i--) {
+        const prevIndex = currentFrameIndex - i;
+        if (prevIndex >= 0 && frames[prevIndex]) {
+          const alpha = onionSkinOpacity * (1 - (i - 1) / Math.max(1, onionSkinPrevFrames));
+          const processedPrev = processFrame(frames[prevIndex], captions, prevIndex, crop);
+          drawTintedFrame(ctx, processedPrev, Math.max(0.05, alpha), { r: 0, g: 180, b: 255 });
+        }
+      }
+
+      for (let i = 1; i <= onionSkinNextFrames; i++) {
+        const nextIndex = currentFrameIndex + i;
+        if (nextIndex < frames.length && frames[nextIndex]) {
+          const alpha = onionSkinOpacity * (1 - (i - 1) / Math.max(1, onionSkinNextFrames));
+          const processedNext = processFrame(frames[nextIndex], captions, nextIndex, crop);
+          drawTintedFrame(ctx, processedNext, Math.max(0.05, alpha), { r: 255, g: 100, b: 100 });
+        }
+      }
+
+      const tempCanvas = imageDataToCanvas(processedCurrent);
+      ctx.drawImage(tempCanvas, 0, 0);
+    } else {
+      ctx.putImageData(processedCurrent, 0, 0);
+    }
+  }, [
+    currentFrameIndex,
+    frames,
+    captions,
+    crop,
+    onionSkinEnabled,
+    onionSkinPrevFrames,
+    onionSkinNextFrames,
+    onionSkinOpacity,
+  ]);
 
   const handleCanvasClick = () => {
     if (frames.length === 0) return;

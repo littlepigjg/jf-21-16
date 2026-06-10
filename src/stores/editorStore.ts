@@ -15,6 +15,10 @@ interface EditorStore {
   canvasHeight: number;
   showImportDialog: boolean;
   showExportDialog: boolean;
+  onionSkinEnabled: boolean;
+  onionSkinPrevFrames: number;
+  onionSkinNextFrames: number;
+  onionSkinOpacity: number;
 
   setFrames: (frames: Frame[]) => void;
   setSelectedFrameIndex: (index: number) => void;
@@ -23,6 +27,10 @@ interface EditorStore {
   setPlaybackSpeed: (speed: number) => void;
   setShowImportDialog: (show: boolean) => void;
   setShowExportDialog: (show: boolean) => void;
+  setOnionSkinEnabled: (enabled: boolean) => void;
+  setOnionSkinPrevFrames: (count: number) => void;
+  setOnionSkinNextFrames: (count: number) => void;
+  setOnionSkinOpacity: (opacity: number) => void;
 
   addFrame: (imageData?: ImageData, afterIndex?: number) => void;
   deleteFrame: (index: number) => void;
@@ -72,6 +80,10 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
   canvasHeight: 480,
   showImportDialog: false,
   showExportDialog: false,
+  onionSkinEnabled: false,
+  onionSkinPrevFrames: 2,
+  onionSkinNextFrames: 2,
+  onionSkinOpacity: 0.4,
 
   setFrames: (frames) => {
     if (frames.length > 0) {
@@ -105,6 +117,10 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
   setPlaybackSpeed: (speed) => set({ playbackSpeed: speed }),
   setShowImportDialog: (show) => set({ showImportDialog: show }),
   setShowExportDialog: (show) => set({ showExportDialog: show }),
+  setOnionSkinEnabled: (enabled) => set({ onionSkinEnabled: enabled }),
+  setOnionSkinPrevFrames: (count) => set({ onionSkinPrevFrames: Math.max(0, Math.min(10, count)) }),
+  setOnionSkinNextFrames: (count) => set({ onionSkinNextFrames: Math.max(0, Math.min(10, count)) }),
+  setOnionSkinOpacity: (opacity) => set({ onionSkinOpacity: Math.max(0.05, Math.min(1, opacity)) }),
 
   addFrame: (imageData, afterIndex) => {
     const state = get();

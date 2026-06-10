@@ -8,6 +8,7 @@ import {
   Plus,
   Trash2,
   Clock,
+  Layers,
 } from 'lucide-react';
 import { useEditorStore } from '@/stores/editorStore';
 import type { Caption } from '@/types';
@@ -201,6 +202,14 @@ export default function PropertyPanel() {
     canvasWidth,
     canvasHeight,
     setAllFrameDelays,
+    onionSkinEnabled,
+    setOnionSkinEnabled,
+    onionSkinPrevFrames,
+    setOnionSkinPrevFrames,
+    onionSkinNextFrames,
+    setOnionSkinNextFrames,
+    onionSkinOpacity,
+    setOnionSkinOpacity,
   } = useEditorStore();
 
   const [globalDelay, setGlobalDelay] = useState(100);
@@ -237,6 +246,97 @@ export default function PropertyPanel() {
           >
             应用到所有帧
           </button>
+        </div>
+      </PanelSection>
+
+      <PanelSection
+        title="洋葱皮"
+        icon={<Layers className="w-4 h-4 text-amber-400" />}
+        defaultOpen={true}
+      >
+        <div className="space-y-3">
+          <label className="flex items-center gap-2 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={onionSkinEnabled}
+              onChange={(e) => setOnionSkinEnabled(e.target.checked)}
+              className="w-4 h-4 rounded border-slate-600 text-amber-600 focus:ring-amber-500 bg-slate-900"
+            />
+            <span className="text-sm text-slate-300">启用洋葱皮</span>
+          </label>
+
+          <div className={cn('space-y-3', !onionSkinEnabled && 'opacity-50 pointer-events-none')}>
+            <div>
+              <div className="flex items-center justify-between mb-1">
+                <label className="text-xs text-slate-400">
+                  <span className="inline-block w-2 h-2 rounded-full bg-cyan-400 mr-1" />
+                  前帧数量
+                </label>
+                <span className="text-xs text-slate-300 font-mono">{onionSkinPrevFrames}</span>
+              </div>
+              <input
+                type="range"
+                min={0}
+                max={10}
+                step={1}
+                value={onionSkinPrevFrames}
+                onChange={(e) => setOnionSkinPrevFrames(Number(e.target.value))}
+                className="w-full h-1 bg-slate-700 rounded-full appearance-none cursor-pointer accent-cyan-500"
+              />
+            </div>
+
+            <div>
+              <div className="flex items-center justify-between mb-1">
+                <label className="text-xs text-slate-400">
+                  <span className="inline-block w-2 h-2 rounded-full bg-rose-400 mr-1" />
+                  后帧数量
+                </label>
+                <span className="text-xs text-slate-300 font-mono">{onionSkinNextFrames}</span>
+              </div>
+              <input
+                type="range"
+                min={0}
+                max={10}
+                step={1}
+                value={onionSkinNextFrames}
+                onChange={(e) => setOnionSkinNextFrames(Number(e.target.value))}
+                className="w-full h-1 bg-slate-700 rounded-full appearance-none cursor-pointer accent-rose-500"
+              />
+            </div>
+
+            <div>
+              <div className="flex items-center justify-between mb-1">
+                <label className="text-xs text-slate-400">透明度</label>
+                <span className="text-xs text-slate-300 font-mono">
+                  {Math.round(onionSkinOpacity * 100)}%
+                </span>
+              </div>
+              <input
+                type="range"
+                min={5}
+                max={100}
+                step={5}
+                value={Math.round(onionSkinOpacity * 100)}
+                onChange={(e) => setOnionSkinOpacity(Number(e.target.value) / 100)}
+                className="w-full h-1 bg-slate-700 rounded-full appearance-none cursor-pointer accent-amber-500"
+              />
+            </div>
+
+            <div className="flex items-center gap-2 text-xs text-slate-500 pt-1 border-t border-slate-700">
+              <div className="flex items-center gap-1">
+                <span className="inline-block w-3 h-3 rounded bg-cyan-400/40" />
+                <span>前帧</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <span className="inline-block w-3 h-3 rounded bg-slate-200" />
+                <span>当前</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <span className="inline-block w-3 h-3 rounded bg-rose-400/40" />
+                <span>后帧</span>
+              </div>
+            </div>
+          </div>
         </div>
       </PanelSection>
 
